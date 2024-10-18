@@ -1,0 +1,115 @@
+{% extends "Customer/base.html" %}
+
+{% block title %}{{ product.name }} - FreshMart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    
+    .product-image {
+        width: 100%;
+        border-radius: 8px;
+    }
+    
+    .freshness-indicator {
+        display: flex;
+        align-items: center;
+        margin: 1rem 0;
+    }
+    
+    .freshness-indicator i {
+        color: #28a745;
+        margin-right: 0.5rem;
+    }
+    
+    .product-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .meta-item {
+        text-align: center;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+    
+    .similar-products {
+        margin-top: 3rem;
+    }
+    
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <div class="product-image-container">
+        <img src="{{ product.image.url|default:'/static/images/placeholder.jpg' }}" alt="{{ product.name }}" class="product-image">
+    </div>
+    
+    <div class="product-info">
+        <h1>{{ product.name }}</h1>
+        <div class="freshness-indicator">
+            <i class="fas fa-check-circle"></i>
+            <span>{{ product.freshness_score }}% Fresh</span>
+        </div>
+        
+        <div class="product-meta">
+            <div class="meta-item">
+                <i class="fas fa-tag"></i>
+                <h3>Brand</h3>
+                <p>{{ product.brand }}</p>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-calendar"></i>
+                <h3>Expiry Date</h3>
+                <p>{{ product.expiry_date|date:"Y-m-d" }}</p>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-user"></i>
+                <h3>Seller</h3>
+                <p>{{ product.seller.company_name }}</p>
+            </div>
+        </div>
+        
+        <p class="product-description">{{ product.description }}</p>
+        
+        <div class="product-actions">
+            <button class="btn btn-primary">Add to Cart</button>
+            <button class="btn btn-outline-secondary">Add to Wishlist</button>
+        </div>
+    </div>
+</div>
+
+<div class="similar-products">
+    <h2>Similar Products</h2>
+    <div class="product-grid">
+        {% for similar_product in similar_products %}
+            {% include 'components/product_card.html' with product=similar_product %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addToCart(productId) {
+    console.log('Adding product to cart:', productId);
+}
+
+function addToWishlist(productId) {
+    console.log('Adding product to wishlist:', productId);
+}
+</script>
+{% endblock %}

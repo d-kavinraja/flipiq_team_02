@@ -1,0 +1,84 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}Shopping Cart - FlipIQ{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold mb-6">Shopping Cart</h1>
+
+    {% if cart.items.all %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <div class="bg-white shadow-sm rounded-lg p-4">
+                    <h2 class="text-lg font-semibold mb-4">Items in Your Cart</h2>
+
+                    <ul class="space-y-4">
+                        {% for item in cart.items.all %}
+                            <li class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-16 h-16 rounded-lg object-cover">
+                                    <div>
+                                        <h3 class="text-gray-800">{{ item.product.name }}</h3>
+                                        <p class="text-sm text-gray-600">Price: ₹{{ item.product.discounted_price }}</p>
+                                        <p class="text-sm text-gray-600">Total: ₹{{ item.get_subtotal }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <form action="{% url 'update_cart' item.id %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="decrease">
+                                        <button class="bg-gray-300 text-gray-800 px-2 py-1 rounded-lg">-</button>
+                                    </form>
+                                    <p class="text-lg">{{ item.quantity }}</p>
+                                    <form action="{% url 'update_cart' item.id %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="increase">
+                                        <button class="bg-gray-300 text-gray-800 px-2 py-1 rounded-lg">+</button>
+                                    </form>
+                                </div>
+                                <form action="{% url 'update_cart' item.id %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove">
+                                    <button class="text-red-600 hover:text-red-800"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="bg-white shadow-sm rounded-lg p-4">
+                <h2 class="text-lg font-semibold mb-4">Cart Summary</h2>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <p class="text-gray-800">Subtotal:</p>
+                        <p class="text-gray-800">₹{{ cart.get_total }}</p>
+                    </div>
+                    <div class="flex justify-between">
+                        <p class="text-gray-600">Taxes:</p>
+                        <p class="text-gray-600">Calculated at checkout</p>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <a href="{% url 'checkout' %}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">
+                        Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-xl font-semibold text-center">Your cart is currently empty</h2>
+            <p class="text-center text-gray-600 mt-4">Browse our products and add some to your cart!</p>
+            <div class="text-center mt-6">
+                <a href="{% url 'product_list' %}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">
+                    Start Shopping
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

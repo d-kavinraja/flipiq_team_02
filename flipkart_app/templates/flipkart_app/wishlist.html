@@ -1,0 +1,92 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}My Wishlist - FlipIQ{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold mb-6">My Wishlist</h1>
+
+    {% if wishlist_items %}
+        <!-- Continue Shopping Button -->
+        <div class="mb-6 text-left">
+            <a href="{% url 'product_list' %}" class="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300">
+                Continue Shopping
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in wishlist_items %}
+            <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300 wishlist-item" id="wishlist-item-{{ item.product.id }}">
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-60 object-cover rounded-t-lg">
+
+                <div class="p-4">
+                    <h2 class="text-lg font-semibold mb-2">{{ item.product.name }}</h2>
+                    <p class="text-gray-600 mb-2">{{ item.product.description|truncatewords:20 }}</p>
+
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-semibold">
+                            ₹{{ item.product.discounted_price }}
+                        </span>
+                        {% if item.product.discount_percentage > 0 %}
+                        <span class="text-sm text-red-500 line-through">${{ item.product.price }}</span>
+                        <span class="text-green-500">{{ item.product.discount_percentage }}% OFF</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <a href="{% url 'add_to_cart' item.product.id %}" class="block text-center bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300">
+                            Add to Cart
+                        </a>
+
+                        <button class="block text-center bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300 remove-wishlist" data-product-id="{{ item.product.id }}">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white p-6 rounded-lg shadow-sm text-center">
+            <h2 class="text-xl font-semibold mb-2">Your wishlist is currently empty</h2>
+            <p class="text-gray-600 mb-4">Browse our products and add your favorites to your wishlist!</p>
+            <a href="{% url 'product_list' %}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">
+                Start Shopping
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript to handle remove from wishlist without page reload -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const removeButtons = document.querySelectorAll('.remove-wishlist');
+
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent the default action
+                const productId = this.getAttribute('data-product-id');
+                
+                // Send the AJAX request
+                fetch(`/remove-from-wishlist/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        // If the request is successful, remove the item from the DOM
+                        document.getElementById(`wishlist-item-${productId}`).remove();
+                    } else {
+                        alert('Error removing the item from the wishlist.');
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('Error processing your request.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

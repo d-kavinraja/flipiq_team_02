@@ -1,0 +1,61 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}Order Confirmation - FlipIQ{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold mb-6">Thank you for your order!</h1>
+    <p class="text-gray-600 mb-6">Your order has been successfully placed. You can view your order details below or track your order in your <a href="{% url 'order_history' %}" class="text-blue-500 hover:text-blue-600">order history</a>.</p>
+    <div class="bg-white p-6 rounded-lg shadow-sm">
+        <h2 class="text-xl font-semibold mb-4">Order #{{ order.id }}</h2>
+        <div class="mb-6">
+            <h3 class="font-semibold text-lg">Items:</h3>
+            <ul class="space-y-4 mt-2">
+                {% for item in order.items.all %}
+                    <li class="flex justify-between items-center">
+                        <div class="flex items-center space-x-4">
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-16 h-16 rounded-lg object-cover">
+                            <div>
+                                <p class="text-gray-800">{{ item.product.name }}</p>
+                                <p class="text-sm text-gray-600">Quantity: {{ item.quantity }}</p>
+                            </div>
+                        </div>
+                        <p class="text-lg">₹{{ item.get_subtotal }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="mb-6">
+            <h3 class="font-semibold text-lg">Summary:</h3>
+            <div class="space-y-2 mt-2">
+                <div class="flex justify-between">
+                    <p class="text-gray-800">Subtotal:</p>
+                    <p class="text-gray-800">₹{{ order.total_amount }}</p>
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-gray-600">Shipping:</p>
+                    <p class="text-gray-600">Free</p> 
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-gray-800">Total:</p>
+                    <p class="text-gray-800 font-semibold">₹{{ order.total_amount }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="mb-6">
+            <h3 class="font-semibold text-lg">Shipping Details:</h3>
+            <p class="text-gray-800">{{ order.shipping_address }}</p>
+            <p class="text-gray-600">{{ order.phone_number }}</p>
+        </div>
+        <div class="mb-6">
+            <h3 class="font-semibold text-lg">Payment Method:</h3>
+            <p class="text-gray-800">{{ order.payment_method }}</p>
+        </div>
+    </div>
+    <div class="text-center mt-8">
+        <a href="{% url 'product_list' %}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">
+            Continue Shopping
+        </a>
+    </div>
+</div>
+{% endblock %}

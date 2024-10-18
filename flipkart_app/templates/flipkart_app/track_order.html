@@ -1,0 +1,16 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}Track Order{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto py-8">
+        <h1 class="text-2xl font-semibold mb-6">Track Order #{{ order.id }}</h1>
+        <p>Order Status: <strong>{{ order.status|title }}</strong></p>
+
+        {% if order.status == 'delivered' %}
+            <p>Your order has been delivered on {{ order.updated_at|date:"F d, Y" }}.</p>
+        {% else %}
+            <p>Your order is currently {{ order.status }}.</p>
+        {% endif %}
+    </div>
+{% endblock %}

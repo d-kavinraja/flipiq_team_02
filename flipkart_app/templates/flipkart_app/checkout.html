@@ -1,0 +1,106 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}Checkout - FlipIQ{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold mb-6">Checkout</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Shipping Details -->
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-xl font-semibold mb-4">Shipping Details</h2>
+
+            <form id="checkout-form" action="{% url 'checkout' %}" method="POST">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label for="shipping_address" class="block text-gray-600">Shipping Address:</label>
+                    <textarea id="shipping_address" name="shipping_address" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" required>{{ user.userprofile.address }}</textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label for="phone_number" class="block text-gray-600">Phone Number:</label>
+                    <input type="tel" id="phone_number" name="phone_number" pattern="[0-9]{10}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" value="{{ user.userprofile.phone_number }}" required>
+                    <small class="text-gray-500">Enter a valid 10-digit phone number</small>
+                </div>
+
+                <!-- Payment Method -->
+                <h2 class="text-xl font-semibold mb-4 mt-8">Payment Method</h2>
+                <div class="mb-4">
+                    <label class="block text-gray-600">Select Payment Method:</label>
+                    <div class="space-y-2 mt-2">
+                        <div>
+                            <input type="radio" id="credit_card" name="payment_method" value="Credit Card" class="mr-2" required>
+                            <label for="credit_card">Credit Card</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="paypal" name="payment_method" value="PayPal" class="mr-2">
+                            <label for="paypal">PayPal</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="cod" name="payment_method" value="Cash on Delivery" class="mr-2">
+                            <label for="cod">Cash on Delivery</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Place Order Button -->
+                <div class="text-right mt-6">
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">
+                        Place Order
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+
+            <ul class="space-y-4">
+                {% for item in cart.items.all %}
+                    <li class="flex justify-between">
+                        <div class="flex items-center space-x-4">
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-16 h-16 rounded-lg object-cover">
+                            <div>
+                                <p class="text-gray-800">{{ item.product.name }}</p>
+                                <p class="text-sm text-gray-600">Quantity: {{ item.quantity }}</p>
+                            </div>
+                        </div>
+                        <p class="text-lg">₹{{ item.get_subtotal }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="mt-6">
+                <div class="flex justify-between text-gray-800">
+                    <p>Subtotal:</p>
+                    <p>₹{{ cart.get_total }}</p>
+                </div>
+                <div class="flex justify-between text-gray-600 mt-2">
+                    <p>Shipping:</p>
+                    <p>Free</p>
+                </div>
+                <div class="flex justify-between text-lg font-semibold text-gray-800 mt-4">
+                    <p>Total:</p>
+                    <p>₹{{ cart.get_total }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client-side Validation Script -->
+<script>
+    document.getElementById('checkout-form').addEventListener('submit', function(event) {
+        const phoneNumber = document.getElementById('phone_number').value;
+        const phonePattern = /^[0-9]{10}$/;
+
+        if (!phonePattern.test(phoneNumber)) {
+            alert('Please enter a valid 10-digit phone number.');
+            event.preventDefault();  // Stop form submission
+        }
+    });
+</script>
+{% endblock %}

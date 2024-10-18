@@ -1,0 +1,202 @@
+{% extends 'flipkart_app/base.html' %}
+
+{% block title %}FlipIQ - Browse Products{% endblock %}
+
+{% block content %}
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- Filters Sidebar -->
+        <div class="w-full md:w-64 bg-white p-4 rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold mb-4">Filters</h2>
+            
+            <form method="get" action="{% url 'product_list' %}">
+                <div class="mb-4">
+                    <h3 class="font-medium mb-2">Categories</h3>
+                    {% for category in categories %}
+                    <div class="flex items-center mb-2">
+                        <input type="checkbox" name="category" value="{{ category.name }}" 
+                               id="cat_{{ category.id }}" 
+                               {% if category.name in selected_categories %}checked{% endif %}
+                               class="mr-2">
+                        <label for="cat_{{ category.id }}">{{ category.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-medium mb-2">Price Range</h3>
+                    <div class="flex gap-2">
+                        <input type="number" name="min_price" placeholder="Min" 
+                               value="{{ min_price }}"
+                               class="w-1/2 p-2 border rounded">
+                        <input type="number" name="max_price" placeholder="Max" 
+                               value="{{ max_price }}"
+                               class="w-1/2 p-2 border rounded">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-medium mb-2">Sort by</h3>
+                    <select name="sort" class="w-full p-2 border rounded">
+                        <option value="">Select</option>
+                        <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>
+                            Price: Low to High
+                        </option>
+                        <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>
+                            Price: High to Low
+                        </option>
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>
+                            Newest First
+                        </option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition duration-300">
+                    Apply Filters
+                </button>
+            </form>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="flex-1">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for product in products %}
+                <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300 relative">
+                    
+                    <!-- Heart Icon for Wishlist -->
+                    <button class="absolute bottom-20 right-5 transition duration-300 wishlist-icon" data-product-id="{{ product.id }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="{% if product in wishlist %}currentColor{% else %}none{% endif %}" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </button>
+
+                    <!-- Product Image -->
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-60 object-cover rounded-t-lg">
+
+                    <div class="p-4">
+                        <h2 class="text-lg font-semibold mb-2">{{ product.name }}</h2>
+                        <p class="text-gray-600 mb-2 h-12 overflow-hidden">{{ product.description|truncatewords:15 }}</p>
+                        <div class="flex justify-between items-center mb-2">
+                            {% if product.discount_percentage > 0 %}
+                                <div>
+                                    <span class="text-lg font-semibold">₹{{ product.discounted_price }}</span>
+                                    <span class="text-sm text-gray-500 line-through ml-2">₹{{ product.price }}</span>
+                                </div>
+                                <span class="text-green-600 font-semibold">{{ product.discount_percentage }}% OFF</span>
+                            {% else %}
+                                <span class="text-lg font-semibold">₹{{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'add_to_cart' product.id %}" class="block text-center bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300">
+                            Add to Cart
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-8">
+                    <p class="text-gray-500 text-lg">No products found matching your criteria.</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% if is_paginated %}
+            <div class="mt-8 flex justify-center">
+                <div class="flex space-x-2">
+                    {% if products.has_previous %}
+                        <a href="?page=1&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo; First</a>
+                        <a href="?page={{ products.previous_page_number }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-100">Previous</a>
+                    {% endif %}
+
+                    <span class="px-3 py-1 border rounded bg-blue-500 text-white">
+                        Page {{ products.number }} of {{ products.paginator.num_pages }}
+                    </span>
+
+                    {% if products.has_next %}
+                        <a href="?page={{ products.next_page_number }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-100">Next</a>
+                        <a href="?page={{ products.paginator.num_pages }}&{{ query_string }}" class="px-3 py-1 border rounded hover:bg-gray-100">Last &raquo;</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Wishlist Message -->
+    <div id="wishlist-message" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-full opacity-0 transition-all duration-300 ease-out">
+        Item added to wishlist!
+        <a href="{% url 'wishlist' %}" class="underline ml-2">View Wishlist</a>
+    </div>
+
+    <!-- JavaScript for Heart Icon Toggle, Wishlist Handling, and Message Display -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const wishlistIcons = document.querySelectorAll('.wishlist-icon');
+            const wishlistMessage = document.getElementById('wishlist-message');
+
+            wishlistIcons.forEach(icon => {
+                const productId = icon.getAttribute('data-product-id');
+                const svg = icon.querySelector('svg');
+
+                icon.addEventListener('click', function() {
+                    const isInWishlist = svg.getAttribute('fill') !== 'none';
+
+                    // Toggle the fill of the heart icon
+                    if (isInWishlist) {
+                        svg.setAttribute('fill', 'none');
+                        svg.classList.remove('text-red-500');
+                        svg.classList.add('text-gray-500');
+                    } else {
+                        svg.setAttribute('fill', 'currentColor');
+                        svg.classList.remove('text-gray-500');
+                        svg.classList.add('text-red-500');
+                    }
+
+                    // Send request to server
+                    const url = isInWishlist 
+                        ? "{% url 'remove_from_wishlist' 0 %}".replace("0", productId) 
+                        : "{% url 'add_to_wishlist' 0 %}".replace("0", productId);
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ product_id: productId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.added) {
+                            showWishlistMessage();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert(error.message);
+                    });
+                });
+            });
+
+            function showWishlistMessage() {
+                wishlistMessage.classList.remove('translate-y-full', 'opacity-0');
+                setTimeout(() => {
+                    wishlistMessage.classList.add('translate-y-full', 'opacity-0');
+                }, 3000);
+            }
+        });
+    </script>
+
+    <style>
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.3); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.3); }
+            70% { transform: scale(1); }
+        }
+        .wishlist-icon svg {
+            transition: fill 0.3s, transform 0.3s;
+        }
+        .wishlist-icon svg.text-red-500 {
+            animation: heartbeat 1s ease-in-out infinite;
+        }
+    </style>
+{% endblock %}
